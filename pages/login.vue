@@ -3,29 +3,23 @@
    <Header />
     <div class="container">
 
-      <div class="form">
+      <form class="form" method="post" @submit.prevent="userLogin">
         <div class="login-form">
-          <p class="error-message" v-show="errors.email">{{ errors.email }}</p>
+          <p class="error" v-show="errors.email">{{ errors.email }}</p>
           <input type="text" name="email" placeholder="Email" v-model="user.email" required>
-           <p class="error-message" v-show="errors.password">{{ errors.password }}</p>
+           <p class="error" v-show="errors.password">{{ errors.password }}</p>
           <input type="password" name="password" placeholder="Password" v-model="user.password" required>
-          <button type="submit" class="btn" @click="login">Submit</button>
-          <p class="message">New User? <a href="#">Create an account</a></p>
+          <button type="submit" class="btn">Sign In</button>
+          <p class="new-user">Don't you have an account? <nuxt-link to="register">Craete an account!</nuxt-link></p>
         </div>
-      </div>
+      </form>
     </div>
  </div>
 </template>
 
 <script>
 export default {
-  middleware({ store, redirect }) {
-    // If the user authenticated
-    console.log(store.state);
-    if (store.state.user) {
-      return redirect('/')
-    }
-  },
+  auth: false,
   data() {
     return {
       user: {
@@ -38,21 +32,32 @@ export default {
       },
     }
   },
+  computed: {
+    authUser() {
+      return this.$auth.user;
+    },
+    token() {
+      return this.$auth.strategy.token.get();
+    }
+  },
+  mounted() {
+    if (this.$auth.loggedIn) {
+      this.$router.push('/')
+    }
+  },
   methods: {
-    login() {
+    async userLogin() {
       this.resetErrors();
-
-      this.$axios.$post('auth/login', this.user).then((res) => {
-        this.$store.commit('SET_USER', res.app_init.user);
-        this.$store.commit('SET_TOKEN', res.token);
+      try {
+        let response = await this.$auth.loginWith('local', { data: this.user });
         this.$router.push("/");
-      }).catch((res) => {
+      } catch (res) {
         if (res.response?.data?.first_errors) {
           Object.entries(res.response?.data?.first_errors).forEach(([key, value]) => {
             this.errors[key] = value
           })
         }
-      })
+      }
     },
     resetErrors() {
       this.errors.email = '';
@@ -75,19 +80,19 @@ export default {
     border: 0;
     width: 100%;
     padding: 15px;
-    background: #FF5722;
+    background: #186804;
     color: $fontcolor;
     text-transform: uppercase;
   }
 
-  @mixin message($fontcolor: #90A4AE){
+  @mixin new-user($fontcolor: #076fa3){
     color: $fontcolor;
     text-align: center;
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
   }
 
-  @mixin input($bkgnd: #F5F5F5){
+  @mixin input($bkgnd: #f5f5f573){
     font-family: $font-family;
     width: 100%;
     border: 0;
@@ -98,6 +103,7 @@ export default {
     text-align: center;
     box-sizing: border-box;
     background: $bkgnd;
+    border: 0.5px solid #186804;
   }
 
   .container{
@@ -128,18 +134,15 @@ export default {
       @include btn;
     }
 
-    .message {
-      @include message;
+    .new-user {
+      @include new-user;
       a {
         text-decoration: none;
-        color: #00BFA5;
+        color:#186804;
       }
     }
   }
 
-  .form .register-form{
-    display: none;
-  }
 
 
 </style>

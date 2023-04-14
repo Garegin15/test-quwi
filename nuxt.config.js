@@ -38,8 +38,40 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    '@nuxtjs/auth-next'
   ],
+  router: {
+    middleware: ['auth']
+  },
+  auth: {
+    redirect: {
+      home: '/',
+    },
+    strategies: {
+      local: {
+        token: {
+          property: 'token',
+          global: true,
+          type: 'Bearer',
+        },
+        user: {
+          property: 'user',
+          autoFetch: true
+        },
+        endpoints: {
+          login: { url: 'auth/login', method: 'post' },
+          logout: { url: '/auth/logout', method: 'post' },
+          user: { url: 'auth/init', method: 'get' }
+        }
+      }
+    }
+  },
+  build: {
+    transpile: [
+      'defu'
+    ]
+  },
 
   axios: {
 

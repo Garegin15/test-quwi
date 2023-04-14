@@ -3,30 +3,23 @@
  <div>
     <Header/>
    <div class="container">
-      <div class="form">
-        <div>
-            <p class="error-message" v-show="errors.name">{{ errors.name }}</p>
-            <input type="text" name="name" placeholder="Name" v-model="user.name" required>
-            <p class="error-message" v-show="errors.email">{{ errors.email }}</p>
-            <input type="text" name="email" placeholder="Email" v-model="user.email" required>
-            <p class="error-message" v-show="errors.password">{{ errors.password }}</p>
-            <input type="password" name="password" placeholder="Password" v-model="user.password" required>
-            <button type="submit" class="btn" @click="saveClient">Submit</button>
-            <p class="message">New User? <a href="#">Create an account</a></p>
-        </div>
-      </div>
+      <form class="form" method="post" @submit.prevent="register">
+        <p class="error" v-show="errors.name">{{ errors.name }}</p>
+        <input type="text" name="name" placeholder="Name" v-model="user.name" required>
+        <p class="error" v-show="errors.email">{{ errors.email }}</p>
+        <input type="text" name="email" placeholder="Email" v-model="user.email" required>
+        <p class="error" v-show="errors.password">{{ errors.password }}</p>
+        <input type="password" name="password" placeholder="Password" v-model="user.password" required>
+        <button type="submit" class="btn">Sign up</button>
+        <p class="already-registered">Already registered? <nuxt-link to="/login">Sing in here! </nuxt-link></p>
+      </form>
     </div>
  </div>
 </template>
 
 <script>
 export default {
-  middleware({ store, redirect }) {
-    // If the user authenticated
-    if (store.state.user) {
-      return redirect('/')
-    }
-  },
+  auth: false,
   data() {
     return {
       user: {
@@ -43,14 +36,24 @@ export default {
       serverError: ''
     }
   },
+  mounted() {
+    if (this.$auth.loggedIn) {
+      this.$router.push('/')
+    }
+  },
   methods: {
-    saveClient() {
-      this.resetErrors()
+    register() {
+      this.refreshErrors()
       this.$axios.$post('auth/signup', this.user).then((res) => {
-        this.$store.commit('SET_USER', res.app_init.token);
-        this.$store.commit('SET_TOKEN', res.token);
+        this.$auth.loginWith('local', {
+          data: {
+            email: this.user.email,
+            password: this.user.password
+          },
+        });
         this.$router.push("/");
       }).catch((res) => {
+        console.log(res)
         if (res.response?.data?.first_errors) {
           Object.entries(res.response?.data?.first_errors).forEach(([key, value]) => {
             this.errors[key] = value
@@ -58,7 +61,7 @@ export default {
         }
       })
     },
-    resetErrors() {
+    refreshErrors() {
       this.errors.email = ''
       this.errors.name = ''
       this.errors.password = ''
@@ -79,19 +82,19 @@ export default {
     border: 0;
     width: 100%;
     padding: 15px;
-    background: #FF5722;
+    background: #186804;
     color: $fontcolor;
     text-transform: uppercase;
   }
 
-  @mixin message($fontcolor: #90A4AE){
+  @mixin already-registered($fontcolor: #076fa3){
     color: $fontcolor;
     text-align: center;
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
   }
 
-  @mixin input($bkgnd: #F5F5F5){
+  @mixin input($bkgnd: #f5f5f573){
     font-family: $font-family;
     width: 100%;
     border: 0;
@@ -102,6 +105,7 @@ export default {
     text-align: center;
     box-sizing: border-box;
     background: $bkgnd;
+    border: 0.5px solid #186804;
   }
 
 
@@ -133,11 +137,11 @@ export default {
       @include btn;
     }
 
-    .message {
-      @include message;
+    .already-registered {
+      @include already-registered;
       a {
         text-decoration: none;
-        color: #00BFA5;
+        color:#186804;
       }
     }
   }

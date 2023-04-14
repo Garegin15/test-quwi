@@ -2,24 +2,24 @@
 <template>
   <div class="container">
     <div class="card" v-for="project in projects" :key="project.id">
-      <div class="logo">
+      <div class="project-logo">
         <img :src="project.logo_url" alt="" width="80px">
       </div>
-      <div class="title">
-        <input type="text" v-if="project.isEdit" v-model="project.name" @blur="onEdit(project)">
-        <h2 v-else @click="project.isEdit = true">{{ project.name }} <img src="~/assets/icons/edit-icon.png" width="20" alt=""></h2>
+      <div class="project-title">
+        <input type="text" class="h2" v-if="project.isEdit" v-model="project.name" @blur="editProject(project)">
+        <h2 v-else @click="project.isEdit = true">{{ project.name }}</h2>
       </div>
-      <div class="status" :class="{'active': project.is_active }">{{ project.is_active ? 'Active' : 'Disabled' }}</div>
-      <div class="content">
-        <div class="times">
+      <div class="project-status" :class="{'active': project.is_active }">{{ project.is_active ? 'Active' : 'Disabled' }}</div>
+      <div class="project-content">
+        <div class="project-times">
           <p>Time this week</p>
           <p>00:00:00</p>
         </div>
-        <div class="times">
+        <div class="project-times">
           <p>This month</p>
           <p>00:00:00</p>
         </div>
-        <div class="times">
+        <div class="project-times">
           <p>Total</p>
           <p>00:00:00</p>
         </div>
@@ -30,7 +30,7 @@
 
 <script>
 export default {
-  name: 'NuxtTutorial',
+  name: 'home',
   data() {
     return {
       projects: []
@@ -38,25 +38,22 @@ export default {
   },
   computed: {
     authUser() {
-      return this.$store.state.user
+      return this.$auth.user;
     },
     token() {
-      return this.$store.state.token
+      return this.$auth.strategy.token.get();
     }
   },
+  created() {
+    this.getProjects();
+  },
   mounted() {
-    this.getProjects()
-    console.log(this.authUser);
   },
   methods: {
-    async onEdit(project) {
+    async editProject(project) {
       try {
         (await this.$axios.$post('projects-manage/update?id=' + project.id, {
           name: project.name
-        }, {
-          headers: {
-            'authorization': `Bearer ${this.token}`
-          }
         }))
       } catch (error) {
         console.log(error);
@@ -65,12 +62,9 @@ export default {
       }
     },
     async getProjects() {
+      console.log(this.$auth.strategy.token.get());
       try {
-        this.projects = (await this.$axios.$get('projects-manage/index?filters[is_active]=1&sort=dta_create', {
-          headers: {
-            'authorization': `Bearer ${this.token}`
-          }
-        })).projects.map(project => {
+        this.projects = (await this.$axios.$get('projects-manage/index?filters[is_active]=1&sort=dta_create')).projects.map(project => {
           project.isEdit = false
           return project
         })
@@ -106,7 +100,7 @@ export default {
     justify-content: center;
   }
 
-  .times{
+  .project-times{
     display: flex;
     justify-content: space-between;
     p {
@@ -120,11 +114,11 @@ export default {
 
   }
 
-  .status {
+  .project-status {
     &.active{
-      color: green;
+      color: #186804;
     }
-    color: red;
+    color: rgb(153, 19, 19);
   }
   .content {
     display: flex;
@@ -135,7 +129,7 @@ export default {
     font-weight: bold;
     margin-bottom: 0;
   }
-  h2 {
+  h2, .h2 {
     cursor: pointer;
     display: flex;
     line-height: 1;

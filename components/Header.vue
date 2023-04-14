@@ -3,19 +3,19 @@
       <nav>
         <ul>
           <li>
-            <nuxt-link to="">LOGO</nuxt-link>
+            <nuxt-link to="/">PROJECT</nuxt-link>
           </li>
           <li>
-            <nuxt-link to="" v-show="authUser">Home</nuxt-link>
+            <nuxt-link to="/" v-show="authentication">Home</nuxt-link>
           </li>
           <li>
-            <nuxt-link to="/login" v-show="!authUser">Login</nuxt-link>
+            <nuxt-link to="/login" v-show="!authentication">Login</nuxt-link>
           </li>
           <li>
-            <nuxt-link to="/register" v-show="!authUser">Register</nuxt-link>
+            <nuxt-link to="/register" v-show="!authentication">Register</nuxt-link>
           </li>
           <li>
-            <span @click="logOut" class="log-out" v-show="authUser">Log out</span>
+            <span @click="logout" class="log-out" v-show="authentication">Log out</span>
           </li>
           <a href="#" id="menu-icon"></a>
         </ul>
@@ -32,17 +32,15 @@
       }
   },
   computed: {
-    authUser() {
-      return this.$store.state.user || null
+    authentication() {
+      return this.$auth.user || null;
     },
   },
   methods: {
-    logOut() {
-      this.$axios.$post('auth/logout', { "anywhere": true }).then((res) => {
-        this.$store.commit('SET_USER', null);
-        this.$router.push("/login");
-      })
-    }
+    async logout() {
+      await this.$auth.logout();
+      this.$router.push("login");
+    },
   },
 }
 
@@ -53,12 +51,12 @@
 
   nav {
     overflow: hidden;
-    background-color: #333;
+    background-color: #186804;
     position: fixed;
     top: 0;
     width: 100%;
     ul {
-      text-align: center;
+      text-align: start;
       list-style-type: none;
       list-style-type: none;
       margin: 0;

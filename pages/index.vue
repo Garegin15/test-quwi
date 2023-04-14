@@ -8,6 +8,6 @@
 <script>
 export default {
   name: 'IndexPage',
-  middleware: 'auth'
+  auth: true
 }
 </script>
